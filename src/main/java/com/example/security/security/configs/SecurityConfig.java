@@ -16,11 +16,19 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Autowired
+    private AuthenticationSuccessHandler customAuthenticationSuccessHandler;
+
+    @Autowired
+    private AuthenticationFailureHandler customAuthenticationFailuerHandler;
 
     @Autowired
     private AuthenticationDetailsSource authenticationDetailsSource;
@@ -69,7 +77,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                .antMatchers("/","/users").permitAll()      // root 페이지는 permit을 올려 인증없이도 접근가능한 페이지
+                .antMatchers("/","/users","user/login/**","/login").permitAll()      // root 페이지는 permit을 올려 인증없이도 접근가능한 페이지
                 .antMatchers("/mypage").hasRole("USER") // USER 권한 계정들이 가는 페이지
                 .antMatchers("/messages").hasRole("MANAGER") // MANAGER 권한 계정들이 가는 페이지
                 .antMatchers("/config").hasRole("ADMIN") // ADMIN 권한 계정들이 가는 페이지
@@ -82,6 +90,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .loginProcessingUrl("/login_proc")
                 .authenticationDetailsSource(authenticationDetailsSource)  // custom api 적용
                 .defaultSuccessUrl("/")
+                .successHandler(customAuthenticationSuccessHandler)
+                .failureHandler(customAuthenticationFailuerHandler)
                 .permitAll()
                 ;
     }
